@@ -1,0 +1,3 @@
+[submodule "bone"]
+	path = bone
+	url = https://github.com/otucher/bone.git
