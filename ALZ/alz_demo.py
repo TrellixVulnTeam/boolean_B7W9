@@ -6,16 +6,21 @@ import sys
 
 from dataclasses import dataclass
 
-sys.path.insert(0, "/Users/oliver.tucher/Code/obone")
-sys.path.insert(0, ".")
+
+sys.path.insert(0, "..")
+
 import bone
 
 
 @dataclass
 class ALZanalysis:
     def __post_init__(self):
-        os.chdir(os.path.dirname(os.path.abspath(__file__)))
-        self.gene_weights_1 = self._get_json_weights("gene_weights_1.json")
+        self.gw_1 = self._get_json_weights(self._get_file("gene_weights_1.json"))
+
+    def _get_file(self, file: str):
+        file_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(file_dir, file)
+        return file_path
 
     def _get_json_weights(self, json_file: str):
         with open(json_file) as file_in:
@@ -23,19 +28,7 @@ class ALZanalysis:
         gene_weights = {int(k): v for k, v in gene_weights.items()}
         return gene_weights
 
-    def avrampou2019(self) -> bone.BoNE:
-        gse138024 = bone.GEO(accessionID="GSE138024")
-        survival = gse138024.survival()
-        expr = pd.read_parquet("GSE138024-GPL17021-expr.parquet.gzip")
-        expr = expr.set_index("Name")
-        avrampou = bone.BoNE(expr, survival)
-
-        name = "c genotype"
-        groups = ["WT", "RGS4 KO"]
-        avrampou.init(name, self.gene_weights_1, groups)
-        return avrampou
-
-    def rodriguez2021_xyz(self) -> bone.BoNE:
+    def rodriguez2021(self) -> bone.BoNE:
         gse164788 = bone.GEO(accessionID="GSE164788")
 
         survival = gse164788.survival()
@@ -45,15 +38,14 @@ class ALZanalysis:
         # rename 1 -> 1.0 so that samples 10 and 1 have different regex matches
         survival[name] = survival[name].replace("1", "1.0")
         # filter survival for specific group
-        survival = survival[survival["c title"].str.contains("dsRNA + lipofectamine")]
+        # survival = survival[survival["c title"].str.contains("dsRNA + lipofectamine")]
 
-        expr = pd.read_parquet("GSE164788-GPL18573-expr.parquet.gzip")
-        expr = expr.set_index("gene_name")
+        expr = pd.read_parquet(self._get_file("GSE164788-GPL18573-expr.parquet.gzip"))
         rodriguez = bone.BoNE(expr, survival)
 
         name = "c drug_concentration_um"
         groups = ["Control", "1.0", "10"]  # "0.3", "3"]
-        rodriguez.init(name, self.gene_weights_1, groups)
+        rodriguez.init(name, self.gw_1, groups)
         return rodriguez
 
     def dong2013(self):
@@ -66,22 +58,8 @@ class ALZanalysis:
 
         name = "c source_name_ch1"
         groups = ["endogenous", "overexpressed"]
-        dong.init(name, self.gene_weights_1, groups)
+        dong.init(name, self.gw_1, groups)
         return dong
-
-    def gse1691687(self):
-        # raw_files
-        pass
-
-    def tan2020(self):
-        gse150696 = bone.GEO(accessionID="GSE150696")
-        survival = gse150696.survival()
-        expr = gse150696.expr()
-
-    def ryan2021(self):
-        gse169687 = bone.GEO(accessionID="GSE169687")
-        survival = gse169687.survival()
-        print(survival)
 
     def peters2017(self):
         gse83687 = bone.GEO(accessionID="GSE83687")
@@ -111,4 +89,4 @@ def violin(bone_obj):
 
 if __name__ == "__main__":
     alz = ALZanalysis()
-    peters = alz.peters2017()
+    alz.avrampou2019()
