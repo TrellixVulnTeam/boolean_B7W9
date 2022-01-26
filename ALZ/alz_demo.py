@@ -6,8 +6,9 @@ import sys
 
 from dataclasses import dataclass
 
-
-sys.path.insert(0, "..")
+SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
+bone_path = os.path.abspath(os.path.join(SOURCE_DIR, "../.."))
+sys.path.insert(0, bone_path)
 
 import bone
 
@@ -50,11 +51,11 @@ class ALZanalysis:
         return rodriguez
 
     def dong2013(self):
-        gse40060 = bone.GEO(accessionID="GSE40060")
+        gse40060 = bone.GEO(accessionID="GSE40060", remove_soft=False)
+
         survival = gse40060.survival()
-        expr = gse40060.expr(rename_genes=True)
+        expr = gse40060.expr()
         expr = expr.fillna(0)
-        expr = bone.add_probeID(expr, "Homo Sapiens", "ENSG")
         dong = bone.BoNE(expr, survival)
 
         name = "c source_name_ch1"
@@ -90,4 +91,6 @@ def violin(bone_obj):
 
 if __name__ == "__main__":
     alz = ALZanalysis()
-    alz.dong2013()
+
+    dong = alz.dong2013()
+    violin(dong)
