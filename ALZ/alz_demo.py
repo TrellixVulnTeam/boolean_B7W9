@@ -41,6 +41,7 @@ class ALZanalysis:
         # survival = survival[survival["c title"].str.contains("dsRNA + lipofectamine")]
 
         expr = pd.read_parquet(self._get_file("GSE164788-GPL18573-expr.parquet.gzip"))
+        expr = bone.add_probeID(expr)
         rodriguez = bone.BoNE(expr, survival)
 
         name = "c drug_concentration_um"
@@ -78,15 +79,15 @@ class ALZanalysis:
 
         peters = bone.BoNE(expr, survival)
         bv = peters.bv()
-        bone.Stepminer(bv)
+        # bone.Stepminer(bv)
 
 
 def violin(bone_obj):
     plt.figure(figsize=(10, 5), dpi=100)
     bone_obj.violin()
-    plt.savefig("violin.png")
+    plt.show()
 
 
 if __name__ == "__main__":
     alz = ALZanalysis()
-    alz.avrampou2019()
+    alz.dong2013()
